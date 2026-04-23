@@ -146,16 +146,20 @@ export function HomeContent({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="sticky top-0 z-30 rounded-[1.75rem] border border-clay/90 bg-white/95 px-4 py-3 shadow-soft backdrop-blur">
+    <div className="space-y-3 sm:space-y-4">
+      <div className="sticky top-0 z-30 rounded-[1.5rem] border border-clay/90 bg-white/95 px-3 py-2.5 shadow-soft backdrop-blur sm:rounded-[1.75rem] sm:px-4 sm:py-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-leaf text-white">
+            <Link
+              href={locationHref}
+              aria-label={`Go to ${locationLabel}`}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-leaf text-white transition hover:scale-[1.02]"
+            >
               <Sprout className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-base font-semibold text-ink">MarketConnect</p>
-              <p className="text-xs text-ink/60">{regionTagline}</p>
+            </Link>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-ink sm:text-base">MarketConnect</p>
+              <p className="truncate text-[11px] text-ink/60 sm:text-xs">{regionTagline}</p>
             </div>
           </div>
 
@@ -171,7 +175,7 @@ export function HomeContent({
 
           <Link
             href={locationHref}
-            className="inline-flex items-center gap-2 rounded-full border border-clay bg-[#fffaf0] px-4 py-2 text-sm font-medium text-ink transition hover:border-leaf/50 hover:text-leaf"
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-clay bg-[#fffaf0] px-3 py-2 text-sm font-medium text-ink transition hover:border-leaf/50 hover:text-leaf sm:px-4"
           >
             <MapPin className="h-4 w-4 text-leaf" />
             {locationLabel}
@@ -179,18 +183,18 @@ export function HomeContent({
         </div>
       </div>
 
-      <section className="rounded-[2rem] border border-clay bg-[#fffaf0] p-5 shadow-soft">
+      <section className="rounded-[1.75rem] border border-clay bg-[#fffaf0] p-4 shadow-soft sm:rounded-[2rem] sm:p-5">
         <div className="max-w-2xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-leaf">Find fresh vendors</p>
-          <h1 className="mt-2 text-3xl font-semibold leading-tight text-ink sm:text-4xl">{heroTitle}</h1>
-          <p className="mt-3 text-sm leading-6 text-ink/70">{heroCopy}</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-leaf sm:text-sm">Find fresh vendors</p>
+          <h1 className="mt-2 text-2xl font-semibold leading-tight text-ink sm:text-4xl">{heroTitle}</h1>
+          <p className="mt-2 text-sm leading-6 text-ink/70">{heroCopy}</p>
         </div>
-        <div className="mt-5 flex flex-wrap gap-2">
+        <div className="mt-4 flex gap-2 overflow-x-auto pb-1 sm:mt-5 sm:flex-wrap sm:overflow-visible sm:pb-0">
           {badgeRow.map((badge, index) => (
             <span
               key={badge}
               className={cn(
-                "rounded-full border border-clay bg-white px-4 py-2 text-sm font-medium text-ink shadow-soft",
+                "whitespace-nowrap rounded-full border border-clay bg-white px-3 py-2 text-xs font-medium text-ink shadow-soft sm:px-4 sm:text-sm",
                 "animate-[pulse_3.6s_ease-in-out_infinite]",
                 index % 2 === 1 ? "[animation-delay:400ms]" : "",
                 index % 3 === 2 ? "[animation-delay:800ms]" : ""
@@ -206,7 +210,7 @@ export function HomeContent({
         <VendorMap vendors={filteredVendors} markets={filteredMarkets} />
       </section>
 
-      <section className="rounded-[2rem] border border-clay bg-white p-4 shadow-soft">
+      <section className="rounded-[1.75rem] border border-clay bg-white p-4 shadow-soft sm:rounded-[2rem]">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-leaf">Today&apos;s Picks</p>
           <h2 className="mt-1 text-xl font-semibold text-ink">{picksHeading}</h2>
@@ -230,7 +234,7 @@ export function HomeContent({
         </div>
       </section>
 
-      <section className="rounded-[2rem] border border-clay bg-white p-4 shadow-soft">
+      <section className="rounded-[1.75rem] border border-clay bg-white p-4 shadow-soft sm:rounded-[2rem]">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-leaf">Featured Markets</p>
@@ -337,10 +341,10 @@ export function HomeContent({
 
       <Link
         href="/auth"
-        className="flex w-full items-center justify-between rounded-[2rem] border border-clay bg-[#f0b35a] px-5 py-5 text-ink shadow-soft"
+        className="flex w-full items-center justify-between rounded-[1.75rem] border border-clay bg-[#f0b35a] px-4 py-4 text-ink shadow-soft sm:rounded-[2rem] sm:px-5 sm:py-5"
       >
         <div>
-          <p className="text-lg font-semibold">{vendorBannerTitle}</p>
+          <p className="text-base font-semibold sm:text-lg">{vendorBannerTitle}</p>
           <p className="mt-1 text-sm text-ink/75">{vendorBannerCopy}</p>
         </div>
         <ArrowRight className="h-5 w-5" />

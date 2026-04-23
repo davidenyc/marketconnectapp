@@ -190,15 +190,15 @@ export function VendorMap({ vendors, markets }: VendorMapProps) {
   }
 
   return (
-    <div className="overflow-hidden rounded-[2rem] border border-clay bg-white shadow-soft">
-      <div className="border-b border-clay bg-[#fffaf0] p-4">
+    <div className="overflow-hidden rounded-[1.75rem] border border-clay bg-white shadow-soft sm:rounded-[2rem]">
+      <div className="border-b border-clay bg-[#fffaf0] p-3 sm:p-4">
         <div className="flex flex-wrap gap-2">
           {radiusOptions.map((option) => (
             <button
               key={option.label}
               type="button"
               onClick={() => setSelectedRadius(option.value)}
-              className={`rounded-full border px-3 py-2 text-sm font-semibold transition ${
+              className={`rounded-full border px-3 py-1.5 text-sm font-semibold transition sm:py-2 ${
                 selectedRadius === option.value
                   ? "border-leaf bg-leaf text-white"
                   : "border-clay bg-white text-ink"
@@ -213,7 +213,7 @@ export function VendorMap({ vendors, markets }: VendorMapProps) {
             type="button"
             onClick={handleUseMyLocation}
             disabled={isLocating}
-            className="inline-flex items-center gap-2 rounded-2xl border border-clay bg-white px-4 py-3 text-sm font-semibold text-ink disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-2xl border border-clay bg-white px-3 py-2.5 text-sm font-semibold text-ink disabled:opacity-60 sm:px-4 sm:py-3"
           >
             {isLocating ? <Loader2 className="h-4 w-4 animate-spin" /> : <LocateFixed className="h-4 w-4" />}
             {isLocating ? "Finding you..." : "Use my location"}
@@ -240,7 +240,7 @@ export function VendorMap({ vendors, markets }: VendorMapProps) {
             }}
             mapboxAccessToken={token}
             mapStyle="mapbox://styles/mapbox/streets-v12"
-            style={{ width: "100%", height: 420 }}
+            style={{ width: "100%", height: 340 }}
           >
             <NavigationControl position="top-right" />
 
@@ -377,7 +377,7 @@ export function VendorMap({ vendors, markets }: VendorMapProps) {
             ) : null}
           </Map>
 
-          <div className="pointer-events-none absolute bottom-3 left-3 rounded-2xl border border-clay bg-white/95 p-3 shadow-soft">
+          <div className="pointer-events-none absolute bottom-3 left-3 rounded-2xl border border-clay bg-white/95 p-2.5 shadow-soft sm:p-3">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink/55">Legend</p>
             <div className="mt-2 space-y-2 text-xs text-ink/75">
               <div className="flex items-center gap-2">
@@ -402,7 +402,7 @@ export function VendorMap({ vendors, markets }: VendorMapProps) {
           </div>
         </div>
       ) : (
-        <div className="border-b border-clay bg-[#fffaf0] p-5">
+        <div className="border-b border-clay bg-[#fffaf0] p-4 sm:p-5">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-clay">
               <MapPin className="h-5 w-5 text-ink" />
@@ -415,19 +415,19 @@ export function VendorMap({ vendors, markets }: VendorMapProps) {
         </div>
       )}
 
-      <div className="grid gap-3 p-4">
+      <div className="grid gap-2.5 p-3 sm:gap-3 sm:p-4">
         {filteredVendors.length > 0 ? (
           filteredVendors.map(({ vendor, distanceKm }) => (
-            <Link key={vendor.id} href={`/vendors/${vendor.slug}`} className="rounded-2xl border border-clay bg-mist p-4">
+            <Link key={vendor.id} href={`/vendors/${vendor.slug}`} className="rounded-2xl border border-clay bg-mist p-3 sm:p-4">
               <div className="flex items-center justify-between gap-2">
-                <span className="font-semibold text-ink">{vendor.name}</span>
+                <span className="text-sm font-semibold text-ink sm:text-base">{vendor.name}</span>
                 <Chip tone={vendor.isActiveToday ? "green" : "amber"}>
                   {vendor.isActiveToday ? "Active" : "Offline"}
                 </Chip>
               </div>
               <div className="mt-2 flex items-center gap-2">
                 <span className={`h-2.5 w-2.5 rounded-full ${getMarketStyle(vendor.marketId).dot}`} />
-                <p className="text-sm text-ink/70">{vendor.location.placeLabel}</p>
+                <p className="text-xs text-ink/70 sm:text-sm">{vendor.location.placeLabel}</p>
               </div>
               {distanceKm !== null ? <p className="mt-2 text-sm font-medium text-leaf">{formatDistanceKm(distanceKm)}</p> : null}
             </Link>

@@ -15,25 +15,25 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <div className="mx-auto flex min-h-screen w-full max-w-md flex-col px-4 pb-6 pt-4 sm:max-w-6xl sm:px-6">
-          <header className="mb-4 flex items-center justify-between rounded-3xl border border-clay bg-mist/90 px-4 py-3 shadow-soft backdrop-blur">
+        <div className="mx-auto flex min-h-screen w-full max-w-md flex-col px-3 pb-5 pt-3 sm:max-w-6xl sm:px-6 sm:pb-6 sm:pt-4">
+          <header className="mb-3 flex flex-col gap-3 rounded-3xl border border-clay bg-mist/90 px-3 py-3 shadow-soft backdrop-blur sm:mb-4 sm:flex-row sm:items-center sm:justify-between sm:px-4">
             <Link href="/" className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-leaf text-lg font-bold text-white">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-leaf text-base font-bold text-white sm:h-11 sm:w-11 sm:text-lg">
                 MC
               </div>
               <div>
-                <p className="text-lg font-semibold text-ink">MarketConnect</p>
+                <p className="text-base font-semibold text-ink sm:text-lg">MarketConnect</p>
                 <p className="text-xs text-ink/65">Fresh produce, easier to find</p>
               </div>
             </Link>
-            <nav className="flex items-center gap-2 text-sm font-medium">
+            <nav className="grid grid-cols-2 gap-2 text-sm font-medium sm:flex sm:items-center">
               <Link
                 href="/auth"
-                className="rounded-full border border-clay px-4 py-2 text-ink transition hover:bg-white"
+                className="rounded-full border border-clay px-4 py-2 text-center text-ink transition hover:bg-white"
               >
                 Vendor login
               </Link>
-              <Link href="/dashboard" className="rounded-full bg-leaf px-4 py-2 text-white transition hover:bg-leaf/90">
+              <Link href="/dashboard" className="rounded-full bg-leaf px-4 py-2 text-center text-white transition hover:bg-leaf/90">
                 Dashboard
               </Link>
             </nav>
