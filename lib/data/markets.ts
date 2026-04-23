@@ -55,7 +55,10 @@ export const mockMarkets: Market[] = [
     openTime: "6:00 AM",
     closeTime: "4:00 PM",
     featuredItems: ["dasheen", "scotch bonnet peppers", "cocoa", "breadfruit"],
-    vendorIds: []
+    vendorIds: [
+      "grenada-vendor-miss-ruby",
+      "grenada-vendor-carenage-spice"
+    ]
   },
   {
     id: "market-grand-anse-farmers-market",
@@ -71,7 +74,9 @@ export const mockMarkets: Market[] = [
     openTime: "7:00 AM",
     closeTime: "2:00 PM",
     featuredItems: ["nutmeg", "soursop", "plantain", "scotch bonnet peppers"],
-    vendorIds: []
+    vendorIds: [
+      "grenada-vendor-grand-anse-fresh-cart"
+    ]
   },
   {
     id: "market-grenville-weekend-market",
@@ -87,7 +92,10 @@ export const mockMarkets: Market[] = [
     openTime: "6:30 AM",
     closeTime: "1:30 PM",
     featuredItems: ["plantain", "christophene", "breadfruit", "cocoa"],
-    vendorIds: []
+    vendorIds: [
+      "grenada-vendor-gouyave-coop",
+      "grenada-vendor-grenville-root-stall"
+    ]
   }
 ];
 

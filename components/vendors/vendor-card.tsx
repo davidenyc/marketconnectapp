@@ -15,6 +15,7 @@ export function VendorCard({ vendor, highlighted = false, cardId }: VendorCardPr
   const today = new Date().toLocaleDateString("en-US", { weekday: "long" });
   const todaysHours = vendor.openDays.includes(today) ? `${vendor.openTime} - ${vendor.closeTime}` : "Closed today";
   const lastUpdated = formatRelativeTime(vendor.location.updatedAt);
+  const currencyCode = vendor.currencyCode ?? "USD";
 
   return (
     <Link
@@ -62,7 +63,9 @@ export function VendorCard({ vendor, highlighted = false, cardId }: VendorCardPr
           <div className="mt-2 flex items-center gap-2 text-sm text-ink/75">
             <Package className="h-4 w-4" />
             <span>
-              {vendor.products[0]?.name ? `${vendor.products[0].name} from ${formatCurrency(vendor.products[0].price)}` : "No produce listed"}
+              {vendor.products[0]?.name
+                ? `${vendor.products[0].name} from ${formatCurrency(vendor.products[0].price, currencyCode)}`
+                : "No produce listed"}
             </span>
           </div>
         </div>

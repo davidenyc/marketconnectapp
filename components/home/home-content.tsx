@@ -14,6 +14,15 @@ import { cn, formatCurrency } from "@/lib/utils";
 type HomeContentProps = {
   vendors: Vendor[];
   markets: Market[];
+  locationLabel: string;
+  locationHref?: string;
+  regionTagline?: string;
+  heroTitle?: string;
+  heroCopy?: string;
+  picksHeading?: string;
+  marketsHeading?: string;
+  vendorBannerTitle?: string;
+  vendorBannerCopy?: string;
 };
 
 type TodaysPick = {
@@ -35,7 +44,19 @@ function normalizeProduceName(name: string) {
   return name.trim().toLowerCase();
 }
 
-export function HomeContent({ vendors, markets }: HomeContentProps) {
+export function HomeContent({
+  vendors,
+  markets,
+  locationLabel,
+  locationHref = "/",
+  regionTagline = "Fresh produce finder",
+  heroTitle = "See who is selling produce near you today.",
+  heroCopy = "MarketConnect helps customers in informal, mobile, and rural markets quickly find vendors, locations, and current stock.",
+  picksHeading = "Today’s best fresh finds",
+  marketsHeading = "Featured markets nearby",
+  vendorBannerTitle = "Are you a vendor?",
+  vendorBannerCopy = "Sign up to share today's location, stock, and market updates."
+}: HomeContentProps) {
   const [highlightedVendorId, setHighlightedVendorId] = useState<string | null>(null);
   const [openMarketIds, setOpenMarketIds] = useState<string[]>([]);
   const [query, setQuery] = useState("");
@@ -134,7 +155,7 @@ export function HomeContent({ vendors, markets }: HomeContentProps) {
             </div>
             <div>
               <p className="text-base font-semibold text-ink">MarketConnect</p>
-              <p className="text-xs text-ink/60">NYC greenmarket finder</p>
+              <p className="text-xs text-ink/60">{regionTagline}</p>
             </div>
           </div>
 
@@ -148,22 +169,21 @@ export function HomeContent({ vendors, markets }: HomeContentProps) {
             />
           </label>
 
-          <div className="inline-flex items-center gap-2 rounded-full border border-clay bg-[#fffaf0] px-4 py-2 text-sm font-medium text-ink">
+          <Link
+            href={locationHref}
+            className="inline-flex items-center gap-2 rounded-full border border-clay bg-[#fffaf0] px-4 py-2 text-sm font-medium text-ink transition hover:border-leaf/50 hover:text-leaf"
+          >
             <MapPin className="h-4 w-4 text-leaf" />
-            Union Square, NYC
-          </div>
+            {locationLabel}
+          </Link>
         </div>
       </div>
 
       <section className="rounded-[2rem] border border-clay bg-[#fffaf0] p-5 shadow-soft">
         <div className="max-w-2xl">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-leaf">Find fresh vendors</p>
-          <h1 className="mt-2 text-3xl font-semibold leading-tight text-ink sm:text-4xl">
-            See who is selling produce near you today.
-          </h1>
-          <p className="mt-3 text-sm leading-6 text-ink/70">
-            MarketConnect helps customers in informal, mobile, and rural markets quickly find vendors, locations, and current stock.
-          </p>
+          <h1 className="mt-2 text-3xl font-semibold leading-tight text-ink sm:text-4xl">{heroTitle}</h1>
+          <p className="mt-3 text-sm leading-6 text-ink/70">{heroCopy}</p>
         </div>
         <div className="mt-5 flex flex-wrap gap-2">
           {badgeRow.map((badge, index) => (
@@ -189,7 +209,7 @@ export function HomeContent({ vendors, markets }: HomeContentProps) {
       <section className="rounded-[2rem] border border-clay bg-white p-4 shadow-soft">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-leaf">Today&apos;s Picks</p>
-          <h2 className="mt-1 text-xl font-semibold text-ink">Best fresh finds at the Greenmarket today</h2>
+          <h2 className="mt-1 text-xl font-semibold text-ink">{picksHeading}</h2>
         </div>
         <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
           {todaysPicks.map((pick) => (
@@ -201,7 +221,9 @@ export function HomeContent({ vendors, markets }: HomeContentProps) {
             >
               <div className="text-2xl">{pick.emoji}</div>
               <p className="mt-3 text-base font-semibold text-ink">{pick.name}</p>
-              <p className="mt-1 text-sm font-medium text-leaf">{formatCurrency(pick.price)}</p>
+              <p className="mt-1 text-sm font-medium text-leaf">
+                {formatCurrency(pick.price, filteredVendors.find((vendor) => vendor.id === pick.vendorId)?.currencyCode ?? "USD")}
+              </p>
               <p className="mt-2 text-sm text-ink/70">{pick.vendorName}</p>
             </button>
           ))}
@@ -212,7 +234,7 @@ export function HomeContent({ vendors, markets }: HomeContentProps) {
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-leaf">Featured Markets</p>
-            <h2 className="mt-1 text-xl font-semibold text-ink">Where NYC shoppers gather this week</h2>
+            <h2 className="mt-1 text-xl font-semibold text-ink">{marketsHeading}</h2>
           </div>
         </div>
         <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
@@ -318,8 +340,8 @@ export function HomeContent({ vendors, markets }: HomeContentProps) {
         className="flex w-full items-center justify-between rounded-[2rem] border border-clay bg-[#f0b35a] px-5 py-5 text-ink shadow-soft"
       >
         <div>
-          <p className="text-lg font-semibold">Are you a vendor?</p>
-          <p className="mt-1 text-sm text-ink/75">Sign up to share today&apos;s location, stock, and market updates.</p>
+          <p className="text-lg font-semibold">{vendorBannerTitle}</p>
+          <p className="mt-1 text-sm text-ink/75">{vendorBannerCopy}</p>
         </div>
         <ArrowRight className="h-5 w-5" />
       </Link>

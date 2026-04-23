@@ -21,6 +21,7 @@ export function VendorDetail({ vendor }: VendorDetailProps) {
 
   const today = new Date().toLocaleDateString("en-US", { weekday: "long" });
   const todaysHours = vendor.openDays.includes(today) ? `${vendor.openTime} - ${vendor.closeTime}` : "Closed today";
+  const currencyCode = vendor.currencyCode ?? "USD";
   const selectedProduct = useMemo(
     () => vendor.products.find((product) => product.id === selectedProductId) ?? null,
     [selectedProductId, vendor.products]
@@ -138,7 +139,7 @@ export function VendorDetail({ vendor }: VendorDetailProps) {
                 <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-ink/70">
                   <div>
                     <p className="text-xs uppercase tracking-wide text-ink/45">Price</p>
-                    <p className="mt-1 font-medium text-ink">{formatCurrency(product.price)}</p>
+                    <p className="mt-1 font-medium text-ink">{formatCurrency(product.price, currencyCode)}</p>
                   </div>
                   <div>
                     <p className="text-xs uppercase tracking-wide text-ink/45">Quantity</p>

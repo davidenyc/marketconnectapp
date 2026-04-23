@@ -39,6 +39,7 @@ export type Vendor = {
   name: string;
   slug: string;
   marketId?: string | null;
+  currencyCode?: string;
   profilePhotoUrl?: string | null;
   description: string;
   isActiveToday: boolean;

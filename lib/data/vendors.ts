@@ -1,4 +1,5 @@
 import { mockVendors } from "@/lib/data/mock";
+import { grenadaMockVendors } from "@/lib/data/grenada-mock";
 import { Vendor } from "@/lib/types";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -37,6 +38,8 @@ function mapVendor(row: VendorRow): Vendor {
     id: row.id,
     name: row.name,
     slug: row.slug,
+    marketId: null,
+    currencyCode: "USD",
     profilePhotoUrl: row.profile_photo_url,
     description: row.description,
     isActiveToday: row.is_active_today,
@@ -116,7 +119,12 @@ export async function getVendors() {
 
 export async function getVendorBySlug(slug: string) {
   const vendors = await getVendors();
-  return vendors.find((vendor) => vendor.slug === slug) ?? null;
+  const match = vendors.find((vendor) => vendor.slug === slug);
+  if (match) {
+    return match;
+  }
+
+  return grenadaMockVendors.find((vendor) => vendor.slug === slug) ?? null;
 }
 
 export async function getVendorForCurrentUser(userId: string) {
