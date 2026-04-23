@@ -42,6 +42,9 @@ function mapVendor(row: VendorRow): Vendor {
     isActiveToday: row.is_active_today,
     coverageArea: row.coverage_area,
     phone: row.phone,
+    openDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+    openTime: "6:00 AM",
+    closeTime: "1:00 PM",
     products: row.products.map((product) => ({
       id: product.id,
       vendorId: product.vendor_id,

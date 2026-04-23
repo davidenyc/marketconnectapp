@@ -17,17 +17,49 @@ export type VendorLocation = {
   updatedAt: string;
 };
 
+export type Market = {
+  id: string;
+  name: string;
+  slug: string;
+  location: {
+    latitude: number;
+    longitude: number;
+  };
+  description: string;
+  coverageArea: string;
+  openDays: string[];
+  openTime: string;
+  closeTime: string;
+  featuredItems: string[];
+  vendorIds?: string[];
+};
+
 export type Vendor = {
   id: string;
   name: string;
   slug: string;
+  marketId?: string | null;
   profilePhotoUrl?: string | null;
   description: string;
   isActiveToday: boolean;
   coverageArea: string;
   phone?: string | null;
+  openDays: string[];
+  openTime: string;
+  closeTime: string;
   products: Product[];
   location: VendorLocation;
+};
+
+export type Reservation = {
+  id: string;
+  vendorId: string;
+  productId: string;
+  productName: string;
+  quantity: number;
+  customerName: string;
+  phone: string;
+  createdAt: string;
 };
 
 export type DashboardVendorForm = {

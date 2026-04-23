@@ -1,19 +1,28 @@
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, Package } from "lucide-react";
+import { Clock3, MapPin, Package } from "lucide-react";
 import { Vendor } from "@/lib/types";
-import { formatCurrency, statusLabel } from "@/lib/utils";
+import { formatCurrency, formatRelativeTime, isOpenNow, statusLabel } from "@/lib/utils";
 import { Chip } from "@/components/ui/chip";
 
 type VendorCardProps = {
   vendor: Vendor;
+  highlighted?: boolean;
+  cardId?: string;
 };
 
-export function VendorCard({ vendor }: VendorCardProps) {
+export function VendorCard({ vendor, highlighted = false, cardId }: VendorCardProps) {
+  const today = new Date().toLocaleDateString("en-US", { weekday: "long" });
+  const todaysHours = vendor.openDays.includes(today) ? `${vendor.openTime} - ${vendor.closeTime}` : "Closed today";
+  const lastUpdated = formatRelativeTime(vendor.location.updatedAt);
+
   return (
     <Link
+      id={cardId}
       href={`/vendors/${vendor.slug}`}
-      className="block rounded-3xl border border-clay bg-[#fffaf0] p-4 shadow-soft transition hover:-translate-y-0.5"
+      className={`block rounded-3xl border bg-[#fffaf0] p-4 shadow-soft transition hover:-translate-y-0.5 ${
+        highlighted ? "border-leaf ring-2 ring-leaf/40" : "border-clay"
+      }`}
     >
       <div className="flex items-start gap-4">
         <div className="relative h-16 w-16 overflow-hidden rounded-2xl bg-clay">
@@ -38,6 +47,17 @@ export function VendorCard({ vendor }: VendorCardProps) {
           <div className="mt-3 flex items-center gap-2 text-sm text-ink/75">
             <MapPin className="h-4 w-4" />
             <span className="truncate">{vendor.location.placeLabel}</span>
+          </div>
+          <div className="mt-2 flex items-center gap-2 text-sm text-ink/75">
+            <Clock3 className="h-4 w-4" />
+            <span>Updated {lastUpdated}</span>
+          </div>
+          <div className="mt-2 flex items-center gap-2 text-sm text-ink/75">
+            <Clock3 className="h-4 w-4" />
+            <span>
+              {todaysHours}
+              {vendor.isActiveToday ? ` · ${isOpenNow(vendor) ? "Open now" : "Closed now"}` : ""}
+            </span>
           </div>
           <div className="mt-2 flex items-center gap-2 text-sm text-ink/75">
             <Package className="h-4 w-4" />

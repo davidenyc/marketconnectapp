@@ -8,9 +8,26 @@ create table if not exists public.users (
   updated_at timestamptz not null default timezone('utc', now())
 );
 
+create table if not exists public.markets (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  slug text unique not null,
+  description text not null default '',
+  place_label text not null,
+  latitude numeric(10, 6) not null,
+  longitude numeric(10, 6) not null,
+  open_time text not null,
+  close_time text not null,
+  open_days text[] not null default '{}',
+  featured_items text[] not null default '{}',
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now())
+);
+
 create table if not exists public.vendors (
   id uuid primary key default gen_random_uuid(),
   user_id uuid unique references public.users(id) on delete cascade,
+  market_id uuid references public.markets(id) on delete set null,
   name text not null,
   slug text unique not null,
   profile_photo_url text,
@@ -44,16 +61,20 @@ create table if not exists public.vendor_locations (
   updated_at timestamptz not null default timezone('utc', now())
 );
 
+create index if not exists idx_markets_slug on public.markets(slug);
 create index if not exists idx_vendors_slug on public.vendors(slug);
+create index if not exists idx_vendors_market_id on public.vendors(market_id);
 create index if not exists idx_products_vendor_id on public.products(vendor_id);
 create index if not exists idx_vendor_locations_vendor_id on public.vendor_locations(vendor_id);
 create unique index if not exists idx_vendor_locations_current_unique on public.vendor_locations(vendor_id) where is_current = true;
 
+alter table public.markets enable row level security;
 alter table public.users enable row level security;
 alter table public.vendors enable row level security;
 alter table public.products enable row level security;
 alter table public.vendor_locations enable row level security;
 
+drop policy if exists "Public can view markets" on public.markets;
 drop policy if exists "Public can view vendors" on public.vendors;
 drop policy if exists "Public can view products" on public.products;
 drop policy if exists "Public can view current vendor locations" on public.vendor_locations;
@@ -63,6 +84,10 @@ drop policy if exists "Users can update own profile" on public.users;
 drop policy if exists "Vendors can manage own record" on public.vendors;
 drop policy if exists "Vendors can manage own products" on public.products;
 drop policy if exists "Vendors can manage own locations" on public.vendor_locations;
+
+create policy "Public can view markets"
+on public.markets for select
+using (true);
 
 create policy "Public can view vendors"
 on public.vendors for select

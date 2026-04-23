@@ -24,6 +24,9 @@ const emptyVendor: Vendor = {
   isActiveToday: false,
   coverageArea: "",
   phone: null,
+  openDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+  openTime: "6:00 AM",
+  closeTime: "1:00 PM",
   location: {
     id: "draft-location",
     vendorId: "draft-vendor",
