@@ -9,9 +9,10 @@ type VendorCardProps = {
   vendor: Vendor;
   highlighted?: boolean;
   cardId?: string;
+  from?: string;
 };
 
-export function VendorCard({ vendor, highlighted = false, cardId }: VendorCardProps) {
+export function VendorCard({ vendor, highlighted = false, cardId, from }: VendorCardProps) {
   const today = new Date().toLocaleDateString("en-US", { weekday: "long" });
   const todaysHours = vendor.openDays.includes(today) ? `${vendor.openTime} - ${vendor.closeTime}` : "Closed today";
   const lastUpdated = formatRelativeTime(vendor.location.updatedAt);
@@ -20,7 +21,7 @@ export function VendorCard({ vendor, highlighted = false, cardId }: VendorCardPr
   return (
     <Link
       id={cardId}
-      href={`/vendors/${vendor.slug}`}
+      href={`/vendors/${vendor.slug}${from ? `?from=${from}` : ""}`}
       className={`block rounded-[1.5rem] border bg-[#fffaf0] p-3 shadow-soft transition hover:-translate-y-0.5 sm:rounded-3xl sm:p-4 ${
         highlighted ? "border-leaf ring-2 ring-leaf/40" : "border-clay"
       }`}

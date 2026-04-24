@@ -7,8 +7,9 @@ import Map, { Marker, NavigationControl, Popup, type MapRef } from "react-map-gl
 import { Loader2, LocateFixed, MapPin, Store } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Market, Vendor } from "@/lib/types";
-import { formatDistanceKm, haversineDistanceKm } from "@/lib/utils";
+import { formatCurrency, formatDistanceKm, haversineDistanceKm } from "@/lib/utils";
 import { Chip } from "@/components/ui/chip";
+import { produceEmojiMap } from "@/lib/data/mock";
 
 type VendorMapProps = {
   vendors: Vendor[];
@@ -74,6 +75,24 @@ const defaultMapCenter = {
   zoom: 15.5
 };
 
+const nycView = {
+  latitude: 40.7359,
+  longitude: -73.9911,
+  zoom: 15.5
+};
+
+const grenadaView = {
+  latitude: 12.0527,
+  longitude: -61.7484,
+  zoom: 11
+};
+
+function formatOpenDays(days: string[]) {
+  return days
+    .map((day) => day.slice(0, 3))
+    .join(" · ");
+}
+
 function getMarketStyle(marketId?: string | null) {
   if (!marketId) {
     return defaultMarketStyle;
@@ -90,6 +109,7 @@ export function VendorMap({ vendors, markets }: VendorMapProps) {
   const [selectedRadius, setSelectedRadius] = useState<(typeof radiusOptions)[number]["value"]>("all");
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [mapHeight, setMapHeight] = useState(420);
 
   const vendorsWithDistance = useMemo(
     () =>
@@ -135,6 +155,10 @@ export function VendorMap({ vendors, markets }: VendorMapProps) {
   );
 
   const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+  const activeRegion = useMemo(() => {
+    const hasGrenadaVendors = filteredVendors.some((entry) => entry.vendor.marketId?.startsWith("market-st-georges") || entry.vendor.marketId?.startsWith("market-grand-anse") || entry.vendor.marketId?.startsWith("market-grenville"));
+    return hasGrenadaVendors ? "grenada" : "nyc";
+  }, [filteredVendors]);
 
   useEffect(() => {
     if (!filteredVendors.some((entry) => entry.vendor.id === selectedVendorId)) {
@@ -142,11 +166,21 @@ export function VendorMap({ vendors, markets }: VendorMapProps) {
     }
   }, [filteredVendors, selectedVendorId]);
 
-  function flyToPosition(position: UserLocation, zoom = 13) {
+  useEffect(() => {
+    function updateMapHeight() {
+      setMapHeight(window.innerWidth < 640 ? 280 : 420);
+    }
+
+    updateMapHeight();
+    window.addEventListener("resize", updateMapHeight);
+    return () => window.removeEventListener("resize", updateMapHeight);
+  }, []);
+
+  function flyToPosition(position: UserLocation, zoom = 13, duration = 1400) {
     mapRef.current?.flyTo({
       center: [position.longitude, position.latitude],
       zoom,
-      duration: 1400
+      duration
     });
   }
 
@@ -231,6 +265,27 @@ export function VendorMap({ vendors, markets }: VendorMapProps) {
 
       {token ? (
         <div className="relative">
+          <div className="absolute left-3 top-3 z-10 flex gap-2">
+            <button
+              type="button"
+              onClick={() => flyToPosition(nycView, nycView.zoom, 1200)}
+              className={`rounded-full border bg-white/95 px-3 py-1.5 text-xs font-semibold shadow-soft backdrop-blur transition ${
+                activeRegion === "nyc" ? "border-leaf bg-leaf/10 text-leaf" : "border-clay text-ink"
+              }`}
+            >
+              🗽 NYC
+            </button>
+            <button
+              type="button"
+              onClick={() => flyToPosition(grenadaView, grenadaView.zoom, 1200)}
+              className={`rounded-full border bg-white/95 px-3 py-1.5 text-xs font-semibold shadow-soft backdrop-blur transition ${
+                activeRegion === "grenada" ? "border-leaf bg-leaf/10 text-leaf" : "border-clay text-ink"
+              }`}
+            >
+              🇬🇩 Grenada
+            </button>
+          </div>
+
           <Map
             ref={mapRef}
             initialViewState={{
@@ -240,7 +295,7 @@ export function VendorMap({ vendors, markets }: VendorMapProps) {
             }}
             mapboxAccessToken={token}
             mapStyle="mapbox://styles/mapbox/streets-v12"
-            style={{ width: "100%", height: 340 }}
+            style={{ width: "100%", height: mapHeight }}
           >
             <NavigationControl position="top-right" />
 
@@ -264,16 +319,16 @@ export function VendorMap({ vendors, markets }: VendorMapProps) {
                       setSelectedMarketId(market.id);
                       setSelectedVendorId(null);
                     }}
-                    className={`flex h-14 w-14 items-center justify-center rounded-full border-4 border-white bg-orange-500 text-white shadow-lg ring-4 ${style.ring}`}
+                    className={`relative flex h-14 w-14 items-center justify-center rounded-full border-4 border-white text-white shadow-lg ring-4 ${style.ring} ${
+                      marketVendors.length === 0 ? "bg-slate-300 opacity-60" : "bg-orange-500"
+                    }`}
                     aria-label={`Open details for ${market.name}`}
                   >
                     <Store className="h-6 w-6" />
                     <span className={`absolute right-1 top-1 h-3 w-3 rounded-full border border-white ${style.dot}`} />
-                    {marketVendors.length > 1 ? (
-                      <span className="absolute -bottom-2 rounded-full bg-white px-2 py-0.5 text-[10px] font-bold text-ink shadow">
-                        {marketVendors.length}
-                      </span>
-                    ) : null}
+                    <span className="absolute -bottom-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-white px-1.5 text-[10px] font-bold text-black shadow">
+                      {marketVendors.length}
+                    </span>
                   </button>
                 </Marker>
               );
@@ -313,6 +368,13 @@ export function VendorMap({ vendors, markets }: VendorMapProps) {
                 maxWidth="260px"
               >
                 <Link href={`/vendors/${selectedVendor.slug}`} className="block p-4">
+                  {(() => {
+                    const topProduct = selectedVendor.products.find((product) => product.stockStatus !== "out_of_stock");
+                    const normalizedProductName = topProduct?.name.trim().toLowerCase() ?? "";
+                    const currencyCode = selectedVendor.currencyCode ?? "USD";
+
+                    return (
+                      <>
                   <div className="flex items-center justify-between gap-2">
                     <h3 className="text-base font-semibold text-ink">{selectedVendor.name}</h3>
                     <Chip tone={selectedVendor.isActiveToday ? "green" : "amber"}>
@@ -320,6 +382,11 @@ export function VendorMap({ vendors, markets }: VendorMapProps) {
                     </Chip>
                   </div>
                   <p className="mt-2 text-sm text-ink/70">{selectedVendor.location.placeLabel}</p>
+                  {topProduct ? (
+                    <p className="mt-2 text-sm text-ink/70">
+                      {produceEmojiMap[normalizedProductName] ?? "🥬"} {topProduct.name} · {formatCurrency(topProduct.price, currencyCode)}/{topProduct.unit}
+                    </p>
+                  ) : null}
                   <p className="mt-2 text-sm text-ink/70">{selectedVendor.products.length} produce listing(s)</p>
                   {userLocation ? (
                     <p className="mt-2 text-sm font-medium text-leaf">
@@ -331,6 +398,9 @@ export function VendorMap({ vendors, markets }: VendorMapProps) {
                       )}
                     </p>
                   ) : null}
+                      </>
+                    );
+                  })()}
                 </Link>
               </Popup>
             ) : null}
@@ -349,6 +419,7 @@ export function VendorMap({ vendors, markets }: VendorMapProps) {
                   <p className="mt-1 text-sm text-ink/70">
                     {selectedMarket.openTime} - {selectedMarket.closeTime}
                   </p>
+                  <p className="mt-1 text-sm text-ink/70">{formatOpenDays(selectedMarket.openDays)}</p>
                   <p className="mt-1 text-sm text-ink/70">{selectedMarket.coverageArea}</p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {vendorsByMarket

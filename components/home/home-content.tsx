@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ArrowRight, ChevronDown, MapPin, Search, Sprout, Store } from "lucide-react";
+import { ArrowRight, Building2, ChevronDown, MapPin, Palmtree, Search, Sprout, Store, X } from "lucide-react";
 import { VendorMap } from "@/components/map/vendor-map";
 import { MarketCard } from "@/components/markets/market-card";
 import { Chip } from "@/components/ui/chip";
 import { VendorCard } from "@/components/vendors/vendor-card";
 import { produceEmojiMap } from "@/lib/data/mock";
 import { Market, Vendor } from "@/lib/types";
-import { cn, formatCurrency } from "@/lib/utils";
+import { cn, formatCurrency, isOpenNow } from "@/lib/utils";
 
 type HomeContentProps = {
   vendors: Vendor[];
@@ -17,6 +17,7 @@ type HomeContentProps = {
   locationLabel: string;
   locationHref?: string;
   regionTagline?: string;
+  regionType?: "city" | "island";
   heroTitle?: string;
   heroCopy?: string;
   picksHeading?: string;
@@ -32,6 +33,8 @@ type TodaysPick = {
   vendorId: string;
   vendorName: string;
 };
+
+type SortOption = "default" | "open-now" | "a-z" | "most-produce";
 
 const badgeRow = [
   "Real farmers, real produce",
@@ -50,30 +53,58 @@ export function HomeContent({
   locationLabel,
   locationHref = "/",
   regionTagline = "Fresh produce finder",
+  regionType,
   heroTitle = "See who is selling produce near you today.",
   heroCopy = "MarketConnect helps customers in informal, mobile, and rural markets quickly find vendors, locations, and current stock.",
   picksHeading = "Today’s best fresh finds",
   marketsHeading = "Featured markets nearby",
   vendorBannerTitle = "Are you a vendor?",
-  vendorBannerCopy = "Sign up to share today's location, stock, and market updates."
+  vendorBannerCopy = "Sign up to share today’s location, stock, and market updates."
 }: HomeContentProps) {
   const [highlightedVendorId, setHighlightedVendorId] = useState<string | null>(null);
   const [openMarketIds, setOpenMarketIds] = useState<string[]>([]);
   const [query, setQuery] = useState("");
+  const [openNowOnly, setOpenNowOnly] = useState(false);
+  const [activeTodayOnly, setActiveTodayOnly] = useState(false);
+  const [sortOption, setSortOption] = useState<SortOption>("default");
 
   const normalizedQuery = query.trim().toLowerCase();
 
   const filteredVendors = useMemo(() => {
-    if (!normalizedQuery) {
-      return vendors;
-    }
+    let nextVendors = vendors.filter((vendor) => {
+      if (!normalizedQuery) {
+        return true;
+      }
 
-    return vendors.filter((vendor) => {
       const vendorMatch = vendor.name.toLowerCase().includes(normalizedQuery);
       const produceMatch = vendor.products.some((product) => product.name.toLowerCase().includes(normalizedQuery));
       return vendorMatch || produceMatch;
     });
-  }, [normalizedQuery, vendors]);
+
+    if (openNowOnly) {
+      nextVendors = nextVendors.filter((vendor) => isOpenNow(vendor));
+    }
+
+    if (activeTodayOnly) {
+      nextVendors = nextVendors.filter((vendor) => vendor.isActiveToday);
+    }
+
+    switch (sortOption) {
+      case "open-now":
+        nextVendors = [...nextVendors].sort((a, b) => Number(isOpenNow(b)) - Number(isOpenNow(a)));
+        break;
+      case "a-z":
+        nextVendors = [...nextVendors].sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case "most-produce":
+        nextVendors = [...nextVendors].sort((a, b) => b.products.length - a.products.length);
+        break;
+      default:
+        break;
+    }
+
+    return nextVendors;
+  }, [activeTodayOnly, normalizedQuery, openNowOnly, sortOption, vendors]);
 
   const filteredMarkets = useMemo(
     () => markets.filter((market) => filteredVendors.some((vendor) => vendor.marketId === market.id)),
@@ -135,6 +166,13 @@ export function HomeContent({
     );
   }
 
+  function clearFilters() {
+    setQuery("");
+    setOpenNowOnly(false);
+    setActiveTodayOnly(false);
+    setSortOption("default");
+  }
+
   function getTopItems(vendor: Vendor) {
     return [...vendor.products]
       .sort((a, b) => {
@@ -148,7 +186,7 @@ export function HomeContent({
   return (
     <div className="space-y-3 sm:space-y-4">
       <div className="sticky top-0 z-30 rounded-[1.5rem] border border-clay/90 bg-white/95 px-3 py-2.5 shadow-soft backdrop-blur sm:rounded-[1.75rem] sm:px-4 sm:py-3">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
           <div className="flex items-center gap-2">
             <Link
               href={locationHref}
@@ -173,14 +211,91 @@ export function HomeContent({
             />
           </label>
 
-          <Link
-            href={locationHref}
-            className="inline-flex items-center justify-center gap-2 rounded-full border border-clay bg-[#fffaf0] px-3 py-2 text-sm font-medium text-ink transition hover:border-leaf/50 hover:text-leaf sm:px-4"
-          >
-            <MapPin className="h-4 w-4 text-leaf" />
-            {locationLabel}
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href={locationHref}
+              className="inline-flex items-center gap-2 rounded-full border border-clay bg-[#fffaf0] px-3 py-2 text-sm font-medium text-ink transition hover:border-leaf/50 hover:text-leaf sm:px-4"
+            >
+              <MapPin className="h-4 w-4 text-leaf" />
+              <span className="truncate max-w-[120px]">{locationLabel}</span>
+            </Link>
+            {regionType && (
+              <div className="flex items-center gap-1 rounded-full border border-clay bg-[#fffaf0] p-1">
+                <Link
+                  href="/city/select"
+                  title="City Markets"
+                  className={`flex h-7 w-7 items-center justify-center rounded-full transition ${
+                    regionType === "city" ? "bg-leaf text-white shadow-sm" : "text-ink/50 hover:text-ink"
+                  }`}
+                >
+                  <Building2 className="h-3.5 w-3.5" />
+                </Link>
+                <Link
+                  href="/island"
+                  title="Island Markets"
+                  className={`flex h-7 w-7 items-center justify-center rounded-full transition ${
+                    regionType === "island" ? "bg-soil text-white shadow-sm" : "text-ink/50 hover:text-ink"
+                  }`}
+                >
+                  <Palmtree className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
+
+        <div className="mt-2.5 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setOpenNowOnly((current) => !current)}
+              className={`rounded-full border px-3 py-1.5 text-sm font-medium transition ${
+                openNowOnly ? "border-leaf bg-leaf text-white" : "border-clay bg-white text-ink/70"
+              }`}
+            >
+              Open now
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTodayOnly((current) => !current)}
+              className={`rounded-full border px-3 py-1.5 text-sm font-medium transition ${
+                activeTodayOnly ? "border-leaf bg-leaf text-white" : "border-clay bg-white text-ink/70"
+              }`}
+            >
+              Active today
+            </button>
+          </div>
+
+          <div className="sm:ml-auto">
+            <select
+              value={sortOption}
+              onChange={(event) => setSortOption(event.target.value as SortOption)}
+              className="w-full rounded-2xl border border-clay bg-[#fffaf0] px-4 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-leaf sm:w-auto"
+            >
+              <option value="default">Default</option>
+              <option value="open-now">Open now first</option>
+              <option value="a-z">A → Z</option>
+              <option value="most-produce">Most produce</option>
+            </select>
+          </div>
+        </div>
+
+        {normalizedQuery ? (
+          <div className="mt-2">
+            <div className="inline-flex items-center gap-2 rounded-full border border-clay bg-mist px-3 py-1.5 text-sm text-ink">
+              <span>🔍 &quot;{query.trim()}&quot;</span>
+              <span className="text-ink/60">· {filteredVendors.length} results</span>
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="rounded-full p-0.5 text-ink/60 transition hover:text-ink"
+                aria-label="Clear search query"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <section className="rounded-[1.75rem] border border-clay bg-[#fffaf0] p-4 shadow-soft sm:rounded-[2rem] sm:p-5">
@@ -323,20 +438,38 @@ export function HomeContent({
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-leaf">Vendors</p>
             <h2 className="mt-1 text-xl font-semibold text-ink">
-              {filteredVendors.length} vendor{filteredVendors.length === 1 ? "" : "s"} matching your search
+              {normalizedQuery
+                ? `${filteredVendors.length} vendor${filteredVendors.length === 1 ? "" : "s"} matching your search`
+                : `${filteredVendors.length} vendor${filteredVendors.length === 1 ? "" : "s"} at this market`}
             </h2>
           </div>
         </div>
-        <div className="grid gap-3">
-          {filteredVendors.map((vendor) => (
-            <VendorCard
-              key={vendor.id}
-              vendor={vendor}
-              cardId={`vendor-card-${vendor.id}`}
-              highlighted={highlightedVendorId === vendor.id}
-            />
-          ))}
-        </div>
+        {filteredVendors.length > 0 ? (
+          <div className="grid gap-3">
+            {filteredVendors.map((vendor) => (
+              <VendorCard
+                key={vendor.id}
+                vendor={vendor}
+                cardId={`vendor-card-${vendor.id}`}
+                highlighted={highlightedVendorId === vendor.id}
+                from={regionType}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-[2rem] border border-clay bg-[#fffaf0] p-8 text-center shadow-soft">
+            <div className="text-4xl">🌿</div>
+            <h3 className="mt-4 text-lg font-semibold text-ink">No vendors found</h3>
+            <p className="mt-2 text-sm text-ink/65">Try a different search or clear your filters.</p>
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="mt-5 rounded-2xl bg-leaf px-5 py-2.5 text-sm font-semibold text-white"
+            >
+              Clear filters
+            </button>
+          </div>
+        )}
       </section>
 
       <Link

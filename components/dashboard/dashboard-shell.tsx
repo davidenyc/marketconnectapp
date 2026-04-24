@@ -1,13 +1,15 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { startTransition, useState } from "react";
+import { startTransition, useRef, useState } from "react";
+import { ExternalLink, MapPin } from "lucide-react";
 import { mockVendors } from "@/lib/data/mock";
 import { Vendor } from "@/lib/types";
 import { saveVendorProfile } from "@/app/dashboard/actions";
 import { LogoutButton } from "@/components/dashboard/logout-button";
 import { PhotoUpload } from "@/components/dashboard/photo-upload";
-import { slugify, stockLabel } from "@/lib/utils";
+import { formatRelativeTime, slugify, stockLabel } from "@/lib/utils";
 import { validateVendorPayload, type ValidationErrors } from "@/lib/validation";
 
 type DashboardShellProps = {
@@ -40,6 +42,7 @@ const emptyVendor: Vendor = {
 
 export function DashboardShell({ initialVendor, authEnabled }: DashboardShellProps) {
   const router = useRouter();
+  const locationInputRef = useRef<HTMLInputElement | null>(null);
   const [vendor, setVendor] = useState<Vendor>(
     initialVendor ?? (authEnabled ? emptyVendor : mockVendors[0] ?? emptyVendor)
   );
@@ -53,6 +56,8 @@ export function DashboardShell({ initialVendor, authEnabled }: DashboardShellPro
   const [isSaving, setIsSaving] = useState(false);
   const [deletedProductIds, setDeletedProductIds] = useState<string[]>([]);
   const [fieldErrors, setFieldErrors] = useState<ValidationErrors>({});
+  const previewHref = `/vendors/${vendor.slug}?from=city`;
+  const lastUpdated = formatRelativeTime(vendor.location.updatedAt);
 
   function updateField<Key extends keyof Vendor>(key: Key, value: Vendor[Key]) {
     setVendor((current) => ({ ...current, [key]: value }));
@@ -82,18 +87,24 @@ export function DashboardShell({ initialVendor, authEnabled }: DashboardShellPro
   }
 
   function updateProduct(productId: string, field: "name" | "price" | "quantityAvailable" | "unit", value: string) {
+    const parsedQuantity = Math.min(999, Math.max(0, Number(value) || 0));
     setVendor((current) => ({
       ...current,
       products: current.products.map((product) =>
         product.id === productId
           ? {
               ...product,
-              [field]: field === "name" || field === "unit" ? value : Number(value),
+              [field]:
+                field === "name" || field === "unit"
+                  ? value
+                  : field === "quantityAvailable"
+                    ? parsedQuantity
+                    : Number(value),
               stockStatus:
                 field === "quantityAvailable"
-                  ? Number(value) <= 0
+                  ? parsedQuantity <= 0
                     ? "out_of_stock"
-                    : Number(value) < 6
+                    : parsedQuantity < 6
                       ? "low_stock"
                       : "in_stock"
                   : product.stockStatus
@@ -150,6 +161,24 @@ export function DashboardShell({ initialVendor, authEnabled }: DashboardShellPro
       return next;
     });
     setNotice("Produce removed locally.");
+  }
+
+  function adjustProductQuantity(productId: string, delta: number) {
+    const product = vendor.products.find((item) => item.id === productId);
+    if (!product) {
+      return;
+    }
+
+    const nextQuantity = Math.min(999, Math.max(0, product.quantityAvailable + delta));
+    updateProduct(productId, "quantityAvailable", String(nextQuantity));
+  }
+
+  function scrollToLocationFields() {
+    const target = document.getElementById("dashboard-location-fields");
+    target?.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.setTimeout(() => {
+      locationInputRef.current?.focus();
+    }, 250);
   }
 
   async function saveAllChanges() {
@@ -221,18 +250,19 @@ export function DashboardShell({ initialVendor, authEnabled }: DashboardShellPro
           <div>
             <h1 className="text-2xl font-semibold text-ink">Vendor dashboard</h1>
             <p className="text-sm text-ink/65">Quick daily updates for profile, stock, and current location.</p>
+            <p className="mt-1 text-xs text-ink/55">Last updated {lastUpdated}</p>
           </div>
           <div className="flex gap-2">
             {authEnabled ? <LogoutButton /> : null}
-            <button
-              type="button"
-              onClick={() => updateField("isActiveToday", !vendor.isActiveToday)}
-              className={`rounded-2xl px-5 py-4 text-sm font-semibold text-white ${
-                vendor.isActiveToday ? "bg-leaf" : "bg-soil"
-              }`}
+            <Link
+              href={previewHref}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-2xl border border-clay px-4 py-2.5 text-sm font-semibold text-ink transition hover:border-leaf/50"
             >
-              {vendor.isActiveToday ? "Mark inactive" : "Mark active today"}
-            </button>
+              Preview listing &rarr;
+              <ExternalLink className="h-4 w-4" />
+            </Link>
             <button
               type="button"
               onClick={() => void saveAllChanges()}
@@ -243,6 +273,25 @@ export function DashboardShell({ initialVendor, authEnabled }: DashboardShellPro
             </button>
           </div>
         </div>
+
+        <button
+          type="button"
+          onClick={() => updateField("isActiveToday", !vendor.isActiveToday)}
+          className={`w-full cursor-pointer rounded-[2rem] p-5 text-left shadow-soft transition ${
+            vendor.isActiveToday ? "bg-leaf text-white" : "bg-clay text-ink"
+          }`}
+        >
+          <div className="space-y-1">
+            <p className="text-lg font-semibold">
+              {vendor.isActiveToday ? "🟢 You're live today" : "⚫ You're currently offline"}
+            </p>
+            <p className={`text-sm ${vendor.isActiveToday ? "text-white/85" : "text-ink/70"}`}>
+              {vendor.isActiveToday
+                ? "Your listing is visible to shoppers right now."
+                : "Toggle on to appear in today's listings."}
+            </p>
+          </div>
+        </button>
 
         <PhotoUpload
           authEnabled={authEnabled}
@@ -309,10 +358,24 @@ export function DashboardShell({ initialVendor, authEnabled }: DashboardShellPro
       </section>
 
       <aside className="space-y-4">
-        <section className="rounded-[2rem] border border-clay bg-[#fffaf0] p-5 shadow-soft">
+        <section id="dashboard-location-fields" className="rounded-[2rem] border border-clay bg-[#fffaf0] p-5 shadow-soft">
           <h2 className="text-lg font-semibold text-ink">Current location</h2>
+          <div className="mt-3 flex items-center justify-between gap-3 rounded-3xl bg-white px-4 py-3">
+            <div className="flex min-w-0 items-center gap-2 text-sm font-medium text-ink/80">
+              <span className="shrink-0">📍</span>
+              <span className="truncate">{vendor.location.placeLabel || "No location set yet"}</span>
+            </div>
+            <button
+              type="button"
+              onClick={scrollToLocationFields}
+              className="shrink-0 rounded-full border border-clay px-3 py-1.5 text-xs font-semibold text-ink transition hover:border-leaf/50"
+            >
+              Update
+            </button>
+          </div>
           <div className="mt-4 grid gap-3">
             <input
+              ref={locationInputRef}
               value={vendor.location.placeLabel}
               onChange={(event) => updateLocation("placeLabel", event.target.value)}
               className={`w-full rounded-2xl bg-white px-4 py-4 ${fieldErrors.placeLabel ? "border border-red-400" : "border border-clay"}`}
@@ -406,7 +469,26 @@ export function DashboardShell({ initialVendor, authEnabled }: DashboardShellPro
                     </div>
                   </div>
                 </div>
-                <div className="mt-3 flex items-center justify-between gap-3">
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => adjustProductQuantity(product.id, -1)}
+                      className="flex h-8 w-8 items-center justify-center rounded-full border border-clay bg-mist text-base font-semibold text-ink"
+                    >
+                      -
+                    </button>
+                    <span className="min-w-[64px] rounded-full border border-clay bg-[#fffaf0] px-3 py-1.5 text-center text-sm font-semibold text-ink">
+                      {product.quantityAvailable}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => adjustProductQuantity(product.id, 1)}
+                      className="flex h-8 w-8 items-center justify-center rounded-full border border-clay bg-mist text-base font-semibold text-ink"
+                    >
+                      +
+                    </button>
+                  </div>
                   <span className="text-sm font-medium text-ink/65">{stockLabel(product.quantityAvailable)}</span>
                   <button
                     type="button"

@@ -14,6 +14,7 @@ export default async function GrenadaPage() {
       markets={grenadaMarkets}
       locationLabel="St. George's, Grenada"
       locationHref="/island"
+      regionType="island"
       regionTagline="Island produce finder"
       picksHeading="Best fresh finds across Grenada today"
       marketsHeading="Where Grenada shoppers gather this week"

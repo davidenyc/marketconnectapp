@@ -13,6 +13,7 @@ export default async function CityPage() {
       markets={cityMarkets}
       locationLabel="Union Square, NYC"
       locationHref="/city/select"
+      regionType="city"
       regionTagline="NYC greenmarket finder"
       picksHeading="Best fresh finds at the Greenmarket today"
       marketsHeading="Where NYC shoppers gather this week"
