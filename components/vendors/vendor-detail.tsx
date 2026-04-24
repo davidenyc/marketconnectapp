@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { Clock3, MapPin, MessageCircle, Package, Phone } from "lucide-react";
 import { Product, Vendor } from "@/lib/types";
 import { formatCurrency, isOpenNow, statusLabel } from "@/lib/utils";
@@ -26,6 +25,10 @@ export function VendorDetail({ vendor }: VendorDetailProps) {
     .slice(0, 2)
     .map((word) => word[0])
     .join("");
+  const formatOpenDays = (days: string[]) =>
+    days
+      .map((day) => day.slice(0, 3))
+      .join(" · ");
   const marketGradient =
     vendor.marketId === "market-union-square"
       ? "bg-gradient-to-br from-violet-100 to-violet-50"
@@ -46,28 +49,37 @@ export function VendorDetail({ vendor }: VendorDetailProps) {
 
   return (
     <>
-      <section className="rounded-[2rem] border border-clay bg-[#fffaf0] p-5 shadow-soft">
-        <div className="relative overflow-hidden rounded-3xl border border-clay bg-white">
-          <div className={`relative h-32 w-full sm:h-44 ${vendor.profilePhotoUrl ? "" : marketGradient}`}>
-            {vendor.profilePhotoUrl ? (
-              <Image src={vendor.profilePhotoUrl} alt={vendor.name} fill className="object-cover" unoptimized />
-            ) : null}
-          </div>
-          <div className="absolute -bottom-6 left-5">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl border-4 border-[#fffaf0] bg-soil text-xl font-bold text-white shadow-soft">
-              {initials}
-            </div>
-          </div>
+      <section className="overflow-hidden rounded-[2rem] border border-clay bg-[#fffaf0] shadow-soft">
+        <div className={`relative h-32 w-full overflow-hidden rounded-t-[2rem] sm:h-44 ${vendor.profilePhotoUrl ? "" : marketGradient}`}>
+          {vendor.profilePhotoUrl ? (
+            <Image src={vendor.profilePhotoUrl} alt={vendor.name} fill className="object-cover" unoptimized />
+          ) : null}
         </div>
 
-        <div className="mt-12 min-w-0">
+        <div className="relative min-w-0 px-5 pb-5 pt-10">
+          <div className="absolute -top-8 left-5 z-10 flex h-16 w-16 items-center justify-center rounded-2xl bg-soil text-xl font-bold text-white shadow-soft">
+            {initials}
+          </div>
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-2xl font-semibold text-ink">{vendor.name}</h1>
             <Chip tone={vendor.isActiveToday ? "green" : "amber"}>{statusLabel(vendor.isActiveToday)}</Chip>
-            <span className="inline-flex items-center gap-2 rounded-full border border-clay bg-white px-3 py-1 text-xs font-medium text-ink">
-              <span className={`h-2.5 w-2.5 rounded-full ${openNow ? "animate-pulse bg-leaf" : "bg-slate-400"}`} />
-              {openNow ? `Open now · closes at ${vendor.closeTime}` : `Closed · opens ${vendor.openTime}`}
-            </span>
+          </div>
+          <div className="mt-2">
+            {openNow ? (
+              <span className="flex items-center gap-1.5">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-leaf opacity-60" />
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-leaf" />
+                </span>
+                <span className="text-sm font-medium text-leaf">Open now · closes at {vendor.closeTime}</span>
+              </span>
+            ) : (
+              <span className="flex items-center gap-1.5">
+                <span className="inline-flex h-2.5 w-2.5 rounded-full bg-slate-400" />
+                <span className="text-sm font-medium text-ink/55">Closed · opens at {vendor.openTime}</span>
+              </span>
+            )}
+            <p className="mt-1 text-xs text-ink/45">{formatOpenDays(vendor.openDays)}</p>
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-2 rounded-full bg-mist px-3 py-1 text-xs font-medium text-ink">
@@ -116,26 +128,22 @@ export function VendorDetail({ vendor }: VendorDetailProps) {
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {vendor.products.map((product) => (
               <article key={product.id} className="rounded-3xl border border-clay bg-white p-4">
-                <div className="flex items-center justify-between gap-2">
+                <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="text-2xl">{produceEmojiMap[product.name.trim().toLowerCase()] ?? "🥬"}</p>
-                    <h3 className="mt-2 text-sm font-semibold text-ink sm:text-base">{product.name}</h3>
+                    <p className="mb-2 text-2xl">{produceEmojiMap[product.name.trim().toLowerCase()] ?? "🥬"}</p>
+                    <h3 className="text-sm font-semibold text-ink sm:text-base">{product.name}</h3>
                   </div>
                   <Chip tone={product.stockStatus === "out_of_stock" ? "amber" : "green"}>
                     {product.stockStatus.replaceAll("_", " ")}
                   </Chip>
                 </div>
-                <div className="mt-3 space-y-2 text-sm text-ink/70">
-                  <div>
-                    <p className="text-xs uppercase tracking-wide text-ink/45">Price</p>
-                    <p className="mt-1 font-medium text-ink">{formatCurrency(product.price, currencyCode)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-wide text-ink/45">Quantity remaining</p>
-                    <p className="mt-1 font-medium text-ink">
-                      {product.quantityAvailable} {product.unit}
+                <div className="mt-3 text-sm text-ink/70">
+                  <p className="font-medium text-ink">{formatCurrency(product.price, currencyCode)}</p>
+                  {product.stockStatus !== "out_of_stock" ? (
+                    <p className="mt-1 text-xs text-ink/50">
+                      {product.quantityAvailable} {product.unit} left
                     </p>
-                  </div>
+                  ) : null}
                 </div>
                 {product.stockStatus !== "out_of_stock" ? (
                   <button
@@ -152,24 +160,24 @@ export function VendorDetail({ vendor }: VendorDetailProps) {
         </div>
 
         {vendor.phone ? (
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            <Link
+          <div className="mt-5 flex gap-3">
+            <a
               href={`tel:${vendor.phone}`}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-clay bg-white px-4 py-3 text-sm font-semibold text-ink transition hover:border-leaf/50"
+              className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-clay py-3 text-sm font-semibold text-ink transition hover:border-leaf/50"
             >
               <Phone className="h-4 w-4 text-leaf" />
               Call vendor
-            </Link>
+            </a>
             {whatsappHref ? (
-              <Link
+              <a
                 href={whatsappHref}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-clay bg-white px-4 py-3 text-sm font-semibold text-ink transition hover:border-leaf/50"
+                className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-clay py-3 text-sm font-semibold text-ink transition hover:border-leaf/50"
               >
                 <MessageCircle className="h-4 w-4 text-leaf" />
                 WhatsApp
-              </Link>
+              </a>
             ) : null}
           </div>
         ) : null}

@@ -81,16 +81,18 @@ const nycView = {
   zoom: 15.5
 };
 
-const grenadaView = {
-  latitude: 12.0527,
-  longitude: -61.7484,
-  zoom: 11
-};
+function formatOpenDays(days: string[]): string {
+  const abbr: Record<string, string> = {
+    Monday: "Mon",
+    Tuesday: "Tue",
+    Wednesday: "Wed",
+    Thursday: "Thu",
+    Friday: "Fri",
+    Saturday: "Sat",
+    Sunday: "Sun"
+  };
 
-function formatOpenDays(days: string[]) {
-  return days
-    .map((day) => day.slice(0, 3))
-    .join(" · ");
+  return days.map((day) => abbr[day] ?? day).join(" · ");
 }
 
 function getMarketStyle(marketId?: string | null) {
@@ -265,11 +267,17 @@ export function VendorMap({ vendors, markets }: VendorMapProps) {
 
       {token ? (
         <div className="relative">
-          <div className="absolute left-3 top-3 z-10 flex gap-2">
+          <div className="pointer-events-none absolute left-3 top-3 z-10 flex gap-2">
             <button
               type="button"
-              onClick={() => flyToPosition(nycView, nycView.zoom, 1200)}
-              className={`rounded-full border bg-white/95 px-3 py-1.5 text-xs font-semibold shadow-soft backdrop-blur transition ${
+              onClick={() =>
+                mapRef.current?.flyTo({
+                  center: [-73.9911, 40.7359],
+                  zoom: 15.5,
+                  duration: 1200
+                })
+              }
+              className={`pointer-events-auto rounded-full border border-clay bg-white/95 px-3 py-1.5 text-xs font-semibold shadow-soft backdrop-blur transition hover:border-leaf/50 ${
                 activeRegion === "nyc" ? "border-leaf bg-leaf/10 text-leaf" : "border-clay text-ink"
               }`}
             >
@@ -277,8 +285,14 @@ export function VendorMap({ vendors, markets }: VendorMapProps) {
             </button>
             <button
               type="button"
-              onClick={() => flyToPosition(grenadaView, grenadaView.zoom, 1200)}
-              className={`rounded-full border bg-white/95 px-3 py-1.5 text-xs font-semibold shadow-soft backdrop-blur transition ${
+              onClick={() =>
+                mapRef.current?.flyTo({
+                  center: [-61.7484, 12.0527],
+                  zoom: 11,
+                  duration: 1200
+                })
+              }
+              className={`pointer-events-auto rounded-full border border-clay bg-white/95 px-3 py-1.5 text-xs font-semibold shadow-soft backdrop-blur transition hover:border-leaf/50 ${
                 activeRegion === "grenada" ? "border-leaf bg-leaf/10 text-leaf" : "border-clay text-ink"
               }`}
             >
@@ -310,6 +324,7 @@ export function VendorMap({ vendors, markets }: VendorMapProps) {
 
             {vendorsByMarket.map(({ market, vendors: marketVendors }) => {
               const style = getMarketStyle(market.id);
+              const hasVendors = (vendorsByMarket.find((entry) => entry.market.id === market.id)?.vendors.length ?? 0) > 0;
 
               return (
                 <Marker key={market.id} latitude={market.location.latitude} longitude={market.location.longitude} anchor="bottom">
@@ -320,7 +335,7 @@ export function VendorMap({ vendors, markets }: VendorMapProps) {
                       setSelectedVendorId(null);
                     }}
                     className={`relative flex h-14 w-14 items-center justify-center rounded-full border-4 border-white text-white shadow-lg ring-4 ${style.ring} ${
-                      marketVendors.length === 0 ? "bg-slate-300 opacity-60" : "bg-orange-500"
+                      hasVendors ? "bg-orange-500" : "bg-slate-300 opacity-60"
                     }`}
                     aria-label={`Open details for ${market.name}`}
                   >
@@ -382,12 +397,12 @@ export function VendorMap({ vendors, markets }: VendorMapProps) {
                     </Chip>
                   </div>
                   <p className="mt-2 text-sm text-ink/70">{selectedVendor.location.placeLabel}</p>
+                  <p className="mt-2 text-sm text-ink/70">{selectedVendor.products.length} produce listing(s)</p>
                   {topProduct ? (
-                    <p className="mt-2 text-sm text-ink/70">
-                      {produceEmojiMap[normalizedProductName] ?? "🥬"} {topProduct.name} · {formatCurrency(topProduct.price, currencyCode)}/{topProduct.unit}
+                    <p className="mt-1.5 text-sm font-medium text-leaf">
+                      {produceEmojiMap[normalizedProductName] ?? "🥬"} {topProduct.name} · {formatCurrency(topProduct.price, currencyCode)}
                     </p>
                   ) : null}
-                  <p className="mt-2 text-sm text-ink/70">{selectedVendor.products.length} produce listing(s)</p>
                   {userLocation ? (
                     <p className="mt-2 text-sm font-medium text-leaf">
                       {formatDistanceKm(
@@ -419,7 +434,7 @@ export function VendorMap({ vendors, markets }: VendorMapProps) {
                   <p className="mt-1 text-sm text-ink/70">
                     {selectedMarket.openTime} - {selectedMarket.closeTime}
                   </p>
-                  <p className="mt-1 text-sm text-ink/70">{formatOpenDays(selectedMarket.openDays)}</p>
+                  <p className="mt-1 text-xs text-ink/60">{formatOpenDays(selectedMarket.openDays)}</p>
                   <p className="mt-1 text-sm text-ink/70">{selectedMarket.coverageArea}</p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {vendorsByMarket

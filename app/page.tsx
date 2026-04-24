@@ -8,7 +8,7 @@ const regionCards = [
     href: "/city/select",
     Icon: Building2,
     accentClassName: "bg-leaf text-white",
-    previewItems: ["🍎 Apples", "🍅 Tomatoes", "🧀 Cheese", "🌿 Greens"]
+    produces: ["🍎 Apples", "🍅 Tomatoes", "🧀 Cheese", "🌿 Greens"]
   },
   {
     title: "Island Markets",
@@ -16,11 +16,9 @@ const regionCards = [
     href: "/island",
     Icon: Palmtree,
     accentClassName: "bg-soil text-white",
-    previewItems: ["🥭 Mango", "🌶️ Scotch bonnet", "🍌 Plantain", "✨ Nutmeg"]
+    produces: ["🥭 Mango", "🌶️ Scotch bonnet", "🍌 Plantain", "✨ Nutmeg"]
   }
 ] as const;
-
-const liveStats = ["12 vendors", "4 markets", "2 regions", "Updated today"] as const;
 
 export default function LandingPage() {
   return (
@@ -47,7 +45,7 @@ export default function LandingPage() {
         </div>
 
         <div className="mt-5 flex flex-wrap justify-center gap-2">
-          {liveStats.map((stat) => (
+          {["12 vendors", "4 markets", "2 regions", "Updated today"].map((stat) => (
             <span
               key={stat}
               className="rounded-full border border-clay bg-white px-4 py-1.5 text-xs font-medium text-ink shadow-soft"
@@ -58,11 +56,11 @@ export default function LandingPage() {
         </div>
 
         <div className="mt-5 grid grid-cols-1 gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4">
-          {regionCards.map(({ title, subtitle, href, Icon, accentClassName, previewItems }) => (
+          {regionCards.map(({ title, subtitle, href, Icon, accentClassName, produces }) => (
             <Link
               key={title}
               href={href}
-              className="group flex min-h-[140px] flex-col justify-between rounded-[1.75rem] border border-clay bg-white p-4 shadow-soft transition duration-200 hover:-translate-y-1 hover:border-leaf/60 hover:shadow-[0_8px_30px_rgba(74,124,89,0.15)] sm:min-h-[220px] sm:rounded-[2rem] sm:p-6"
+              className="group flex min-h-[160px] flex-col justify-between rounded-[1.75rem] border border-clay bg-white p-4 shadow-soft transition duration-200 hover:-translate-y-1 hover:border-leaf/60 hover:shadow-[0_8px_30px_rgba(74,124,89,0.12)] sm:min-h-[220px] sm:rounded-[2rem] sm:p-6"
             >
               <div className={`flex h-12 w-12 items-center justify-center rounded-[1.25rem] sm:h-14 sm:w-14 ${accentClassName}`}>
                 <Icon className="h-7 w-7" />
@@ -70,8 +68,8 @@ export default function LandingPage() {
               <div className="mt-3 sm:mt-10">
                 <h2 className="text-xl font-semibold text-ink sm:text-2xl">{title}</h2>
                 <p className="mt-2 text-xs leading-5 text-ink/70 sm:text-sm sm:leading-6">{subtitle}</p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {previewItems.map((item) => (
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {produces.map((item) => (
                     <span
                       key={`${title}-${item}`}
                       className="rounded-full border border-clay bg-mist px-2.5 py-1 text-xs font-medium text-ink/75"

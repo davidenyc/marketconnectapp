@@ -36,10 +36,10 @@ export default async function VendorPage({ params, searchParams }: VendorPagePro
         {back.label}
       </Link>
       {market ? (
-        <div className="flex items-center gap-2 text-xs text-ink/55">
+        <p className="flex items-center gap-1.5 text-xs text-ink/50">
           <Store className="h-3.5 w-3.5" />
-          <span>Part of {market.name}</span>
-        </div>
+          Part of {market.name}
+        </p>
       ) : null}
       <VendorDetail vendor={vendor} />
     </div>
